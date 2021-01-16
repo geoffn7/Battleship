@@ -3,6 +3,36 @@ import time
 
 def Game(Player1, Player2):
 
+    #Set up ships and boards
+    player1_progress_board = []
+    for x in range(5):
+        player1_progress_board.append(["O"]*5)
+
+    player2_progress_board = []
+    for x in range(5):
+        player2_progress_board.append(["O"]*5)
+
+    ships = int(input("How many battleships will be present in this game? "))
+    if ships > 25:
+        print("There's more ships than the ocean can handle! 7 ships seems reasonable.")
+        ships = 7
+
+    player1_ships = []
+    player2_ships = []
+    while len(player1_ships) < ships:
+        player1_ship_row = randint(0, len(player1_progress_board)-1)
+        player1_ship_col = randint(0, len(player1_progress_board[0])-1)
+
+        if [player1_ship_row, player1_ship_col] not in player1_ships:
+            player1_ships.append([player1_ship_row, player1_ship_col])
+
+    while len(player2_ships) < ships:
+        player2_ship_row = randint(0, len(player2_progress_board)-1)
+        player2_ship_col = randint(0, len(player2_progress_board[0])-1)
+
+        if [player2_ship_row, player2_ship_col] not in player2_ships:
+            player2_ships.append([player2_ship_row, player2_ship_col])
+    
     print('Game beginning in...')
     time.sleep(0.5)
     print("3")
@@ -15,125 +45,100 @@ def Game(Player1, Player2):
 
     print ("Turn", 1)
     
-    #Setting a specific battleship location for testing
-    """
-    Player2.ship_row = 0
-    Player2.ship_col = 0
-    Player1.ship_row = 0
-    Player1.ship_col = 0
-    """
-
-    #Reset player boards
-    Player1.ship_row = randint(0, len(Player1.board)-1)
-    Player1.ship_col = randint(0, len(Player1.board)-1)
-
-    Player2.ship_row = randint(0, len(Player2.board)-1)
-    Player2.ship_col = randint(0, len(Player2.board)-1)
-    
-    #For automatically incrementing guesses across the board
-    """
-    row_count = 0
-    column_count = 0
-    """
     for turn in range(1,26):
 
+        player1_hit_ship = False
+        player2_hit_ship = False
 
-        ##For automatically incrementing guesses across the board
-        """
-        p1_guess_row = row_count
-        p1_guess_col = column_count
-        p2_guess_row = row_count
-        p2_guess_col = column_count
-        if turn%5==0: column_count += 1
-        if row_count == 4: row_count = 0
-        else: row_count += 1
-        """
+        p1_guess_row = int(input("Player 1 Guess Row? "))
+        p1_guess_col = int(input("Player 1 Guess Col? "))
 
-        p1_guess_row = int(input("Player 1 Guess Row: "))
-        p1_guess_col = int(input("Player 1 Guess Col: "))
+        p2_guess_row = int(input("\nPlayer 2 Guess Row? "))
+        p2_guess_col = int(input("Player 2 Guess Col? "))
 
-        p2_guess_row = int(input("Player 2 Guess Row: "))
-        p2_guess_col = int(input("Player 2 Guess Col: "))
+        for ship in player2_ships:
+            if p1_guess_row == ship[0] and p1_guess_col == ship[1]:
+                print("--------------\n" + Player1.username + " has sunk " + Player2.username + "'s ship!\n")
+                player2_progress_board[p1_guess_row][p1_guess_col]="@"
+                Player1.has_hit()
+                player2_ships.remove([p1_guess_row, p1_guess_col])
+                player1_hit_ship = True
 
-        game_status = 0 #in session
-        game_result = 0 #tie
-        if p1_guess_row == Player2.ship_row and p1_guess_col == Player2.ship_col:
-            print("--------------\nCongratulations! " + Player1.username + " has sunk " + Player2.username + "'s ship!\n")
-            Player2.board[p1_guess_row][p1_guess_col]="@"
-            game_status = 1 #over
-            game_result = 1 #player 1 has won
-            Player1.has_hit()
-            Player1.has_won()
-            Player2.has_lost()
-
-        if p2_guess_row == Player1.ship_row and p2_guess_col == Player1.ship_col:
-            print("--------------\nCongratulations! " + Player2.username + " has sunk " + Player1.username + "'s ship!\n")
-            Player1.board[p1_guess_row][p1_guess_col]="@"
-            game_status = 1 #over
-            if game_result == 1: #tie
-                game_result = 0
-                #backtracking since it's a tie now
+        for ship in player1_ships:
+            if p2_guess_row == ship[0] and p2_guess_col == ship[1]:
+                print("--------------\n" + Player2.username + " has sunk " + Player1.username + "'s ship!\n")
+                player1_progress_board[p1_guess_row][p1_guess_col]="@"
                 Player2.has_hit()
-                Player1.wins -= 1
-                Player2.loses -= 1
+                player1_ships.remove([p2_guess_row, p2_guess_col])
+                player2_hit_ship = True
 
-            else: 
-                game_result = 2 #player 2 has won
-                Player2.has_hit()
-                Player2.has_won()
-                Player1.has_lost()
-
-        if game_status == 1:
-            print(Player1.username + "'s Board")
-            Player1.print_board()
-            print("\n")
-
-            print(Player2.username + "'s Board")
-            Player2.print_board()
-            print("\n")
-            break
-
-        else:
+        if player1_hit_ship == False:
             #Player 1 miss cases
             Player1.has_missed()
-            if (p1_guess_row < 0 or p1_guess_row > len(Player2.board)-1) or (p1_guess_col < 0 or p1_guess_col > len(Player2.board[0])-1):
-                print ("Oops, that's not even in the ocean.")
-            elif (Player2.board[p1_guess_row][p1_guess_col]=="X"):
-                print ("You guessed that one already.")
+            if (p1_guess_row < 0 or p1_guess_row > len(player2_progress_board)-1) or (p1_guess_col < 0 or p1_guess_col > len(player2_progress_board[0])-1):
+                print ("--------------\n@" + Player1.username + " Oops, that's not even in the ocean.")
+            elif (player2_progress_board[p1_guess_row][p1_guess_col]=="X"):
+                print ("--------------\n@" + Player1.username + " You guessed that one already.")
             else:
-                print ("You missed my battleship!")
-                Player2.board[p1_guess_row][p1_guess_col]="X"
+                print ("--------------\n@" + Player1.username + " You missed!")
+                player2_progress_board[p1_guess_row][p1_guess_col]="X"
             
+        if player2_hit_ship == False:
             #Player 2 miss cases
             Player2.has_missed()
-            if (p2_guess_row < 0 or p2_guess_row > len(Player1.board)-1) or (p2_guess_col < 0 or p2_guess_col > len(Player1.board[0])-1):
-                print ("Oops, that's not even in the ocean.")
-            elif (Player1.board[p2_guess_row][p2_guess_col]=="X"):
-                print ("You guessed that one already.")
+            if (p2_guess_row < 0 or p2_guess_row > len(player1_progress_board)-1) or (p2_guess_col < 0 or p2_guess_col > len(player1_progress_board[0])-1):
+                print ("--------------\n@" + Player2.username + " Oops, that's not even in the ocean.")
+            elif (player1_progress_board[p2_guess_row][p2_guess_col]=="X"):
+                print ("--------------\n@" + Player2.username + " You guessed that one already.")
             else:
-                print ("You missed my battleship!")
-                Player1.board[p2_guess_row][p2_guess_col]="X"
+                print ("--------------\n@" + Player2.username + " You missed!")
+                player1_progress_board[p2_guess_row][p2_guess_col]="X"
 
-            if turn == 25:
-                print ("Game Over")
-                Player1.board[Player1.ship_row][Player1.ship_col]="@"
-                Player2.board[Player2.ship_row][Player2.ship_col]="@"
-                print ("I can't believe you both couldn't find each others' battleships!")
+        #Checking if a player has won
+        if len(player2_ships) == 0 or len(player1_ships) == 0:
+            if len(player2_ships) == 0 and len(player1_ships) == 0:
+                Player1.has_won()
+                Player2.has_won()
+                print ("Both sides have been completely wiped out.")
+            elif len(player2_ships) == 0:
+                print (Player2.username + "'s fleet has been destroyed.")
+                Player1.has_won()
+                Player2.has_lost()
             else:
-                print ("Turn", turn+1)
+                print (Player1.username + "'s fleet has been destroyed.")
+                Player2.has_won()
+                Player1.has_lost()
+            for ship in player1_ships:
+                player1_progress_board[ship[0]][ship[1]] = "@"
+            for ship in player2_ships:
+                player2_progress_board[ship[0]][ship[1]] = "@"     
 
-            print(Player1.username + "'s Board:\n")
-            Player1.print_board()
-            print("\n")
+        elif turn == 25:
+            print ("Game Over")
+            for ship in player1_ships:
+                player1_progress_board[ship[0]][ship[1]] = "@"
+            for ship in player2_ships:
+                player2_progress_board[ship[0]][ship[1]] = "@"            
+            print ("I can't believe you both couldn't find each others' battleships!")
+        else:
+            print ("--------------\nTurn", turn+1)
 
-            print(Player2.username + "'s Board:\n")
-            Player2.print_board()
-            print("\n")
+        print("--------------\n" + Player1.username + "'s Board")
+        for row in player1_progress_board:
+            print (" ".join(row))
+        print("\n")
 
+        print("--------------\n" + Player2.username + "'s Board")
+        for row in player2_progress_board:
+            print (" ".join(row))
+        print("\n")
+
+        if len(player2_ships) == 0 or len(player1_ships) == 0 or turn == 25:
+            break
+        
 class Player:
 
     def __init__(self, username):
-        self.reset_board()
         self.username = username
 
         #Statistics
@@ -141,18 +146,6 @@ class Player:
         self.loses = 0
         self.hits = 0
         self.misses = 0
-
-        self.ship_row = randint(0, len(self.board)-1)
-        self.ship_col = randint(0, len(self.board)-1)
-
-    def print_board(self): 
-        for row in self.board:
-            print (" ".join(row))
-
-    def reset_board(self):
-        self.board = []
-        for x in range(5):
-            self.board.append(["O"]*5)
 
     def has_won(self):
         self.wins += 1
@@ -171,8 +164,6 @@ if __name__ == "__main__":
     
     Player1 = Player(input("Enter Player 1 Username: "))
     Player2 = Player(input("Enter Player 2 Username: "))
-    
-    #TO-DO: addBattleships(int(input("How many battleships will be present in this game? ")))
     Game(Player1, Player2)
     
     while True:
@@ -203,4 +194,3 @@ if __name__ == "__main__":
             Game(Player1, Player2)
         else:
             break
-
